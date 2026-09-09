@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Features\Tasks\Commands\CreateTask - Copy\**" />
+    <Compile Remove="Features\Tasks\Commands\DeleteTask - Copy\**" />
+    <Compile Remove="Features\Tasks\Commands\UpdateTask - Copy\**" />
+    <EmbeddedResource Remove="Features\Tasks\Commands\CreateTask - Copy\**" />
+    <EmbeddedResource Remove="Features\Tasks\Commands\DeleteTask - Copy\**" />
+    <EmbeddedResource Remove="Features\Tasks\Commands\UpdateTask - Copy\**" />
+    <None Remove="Features\Tasks\Commands\CreateTask - Copy\**" />
+    <None Remove="Features\Tasks\Commands\DeleteTask - Copy\**" />
+    <None Remove="Features\Tasks\Commands\UpdateTask - Copy\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TaskManagement.Domain\TaskManagement.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="11.9.2" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.2" />
+    <PackageReference Include="MediatR" Version="12.4.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+  </ItemGroup>
+
+</Project>
