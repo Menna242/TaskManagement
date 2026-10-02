@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace TaskManagement.Application.Features.Tasks.Commands.UpdateTask
 {
-    class UpdateTaskCommandValidator:AbstractValidator<UpdateTaskCommand>
+    public class UpdateTaskCommandValidator :AbstractValidator<UpdateTaskCommand>
     {
         public UpdateTaskCommandValidator()
         {
@@ -18,10 +18,7 @@ namespace TaskManagement.Application.Features.Tasks.Commands.UpdateTask
                 .NotEmpty().WithMessage("Title is required.")
                 .MaximumLength(200);
 
-            RuleFor(x => x.Status)
-                .NotEmpty().WithMessage("Status is required.")
-                .Must(status => Enum.TryParse<Domain.Entities.TaskStatus>(status, out _))
-                .WithMessage("Status must be a valid value (Todo, InProgress, Done).");
+        
         }
     }
 }

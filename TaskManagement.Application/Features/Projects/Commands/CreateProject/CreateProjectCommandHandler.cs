@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TaskManagement.Application.Abstractions.Authentication;
 using TaskManagement.Application.Abstractions.Persistence;
 using TaskManagement.Application.Features.Projects.Dtos;
 using TaskManagement.Domain.Entities;
@@ -14,16 +15,27 @@ namespace TaskManagement.Application.Features.Projects.Commands.CreateProject
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        public CreateProjectCommandHandler(IUnitOfWork unitOfWork)
+        private readonly ICurrentUserService _currentUser;
+
+        public CreateProjectCommandHandler(
+            IUnitOfWork unitOfWork,
+            ICurrentUserService currentUser)
         {
             _unitOfWork = unitOfWork;
+            _currentUser = currentUser;
         }
         public async Task<ProjectDto> Handle(CreateProjectCommand request, CancellationToken cancellationToken)
         {
+            if (_currentUser.UserId is not Guid userId)
+                throw new UnauthorizedAccessException("User is not authenticated.");
+
+
+
             var project = new ProjectEntity
             {
                 Name = request.Name,
-                Description = request.Description
+                Description = request.Description,
+                OwnerId = userId
             };
 
 

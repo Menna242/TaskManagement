@@ -1,10 +1,11 @@
 ﻿using MediatR;
 using TaskManagement.Application.Abstractions.Persistence;
 using TaskManagement.Application.Features.Tasks.Dtos;
+using TaskManagement.Domain.Common;
 
 namespace TaskManagement.Application.Features.Tasks.Queries.GetTaskById;
 
-public class GetTaskByIdQueryHandler : IRequestHandler<GetTaskByIdQuery, TaskDto>
+public class GetTaskByIdQueryHandler : IRequestHandler<GetTaskByIdQuery, Result<TaskDto>>
 {
     private readonly IUnitOfWork _unitOfWork;
 
@@ -13,12 +14,12 @@ public class GetTaskByIdQueryHandler : IRequestHandler<GetTaskByIdQuery, TaskDto
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<TaskDto> Handle(GetTaskByIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<TaskDto>> Handle(GetTaskByIdQuery request, CancellationToken cancellationToken)
     {
         var task = await _unitOfWork.Tasks.GetByIdAsync(request.Id, cancellationToken);
 
         if (task is null)
-            throw new KeyNotFoundException($"Task with Id {request.Id} was not found.");
+            return Error.NotFound("Task.NotFound", "The task was not found.");
 
         return new TaskDto
         {

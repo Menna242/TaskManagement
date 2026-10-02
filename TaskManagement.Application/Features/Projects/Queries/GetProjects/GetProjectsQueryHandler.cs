@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using TaskManagement.Application.Abstractions.Persistence;
 using TaskManagement.Application.Features.Projects.Dtos;
-using TaskManagement.Application.Features.Tasks.Queries.GetProjects;
+using TaskManagement.Application.Features.Projects.Queries.GetProjects;
 
 namespace TaskManagement.Application.Features.Projects.Queries.GetProjects;
 

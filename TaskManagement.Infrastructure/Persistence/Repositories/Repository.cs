@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using TaskManagement.Application.Abstractions.Persistence;
@@ -45,6 +46,16 @@ namespace TaskManagement.Infrastructure.Persistence.Repositories
             _dbSet.Remove(entity);
         }
 
+
+        public async Task<List<T>> FindAsync(
+        Expression<Func<T, bool>> predicate,
+        CancellationToken cancellationToken = default)
+        {
+            return await _context.Set<T>()
+                .AsNoTracking()
+                .Where(predicate)
+                .ToListAsync(cancellationToken);
+        }
 
     }
 }

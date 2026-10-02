@@ -1,14 +1,18 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Mvc;
 using TaskManagement.Application.Features.Tasks.Commands.CreateTask;
 using TaskManagement.Application.Features.Tasks.Commands.DeleteTask;
 using TaskManagement.Application.Features.Tasks.Commands.UpdateTask;
+using TaskManagement.Application.Features.Tasks.Commands.UpdateTaskStatus;
+using TaskManagement.Application.Features.Tasks.Dtos;
 using TaskManagement.Application.Features.Tasks.Queries.GetTaskById;
 using TaskManagement.Application.Features.Tasks.Queries.GetTasks;
 
 namespace TaskManagement.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Microsoft.AspNetCore.Mvc.Route("api/[controller]")]
     public class TasksController : ControllerBase
@@ -38,6 +42,19 @@ namespace TaskManagement.API.Controllers
             return Ok(result);
         }
 
+        [HttpPatch("{id:guid}/status")]
+        public async Task<ActionResult<TaskDto>> UpdateStatus(
+        Guid id,
+        UpdateTaskStatusRequest request,
+        CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(
+                new UpdateTaskStatusCommand(id, request.Status),
+                cancellationToken);
+
+            return Ok(result);
+        }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTask(Guid id, CancellationToken cancellationToken)
@@ -63,4 +80,5 @@ namespace TaskManagement.API.Controllers
 
 
     }
+    public record UpdateTaskStatusRequest(string Status);
 }
