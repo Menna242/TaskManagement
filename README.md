@@ -101,7 +101,6 @@ TaskManagement/
 ├── appsettings.json
 └── Program.cs
 
-
 Each feature is self-contained: its commands, queries, DTOs, and validators live together.
 
 ---
