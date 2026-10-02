@@ -15,8 +15,9 @@ The solution is split into **four independent projects**, each with a single, we
 - **Infrastructure**: EF Core, ASP.NET Core Identity, JWT token generation, repository and unit of work implementations.
 - **API**: controllers, Swagger, JWT bearer setup, global exception handling.
 
+```
 Client -> API -> MediatR -> Logging -> Validation -> Handler -> Repository abstraction -> Infrastructure -> Database
-
+```
 
 Dependency direction: `API -> Infrastructure -> Application -> Domain`.
 
@@ -26,80 +27,82 @@ Controllers never access repositories or the DbContext directly. Every request f
 
 ## Project Structure
 
+```
 TaskManagement/
 │
 ├── TaskManagement.Domain/
-│ ├── Common/
-│ │ ├── BaseEntity.cs (generic BaseEntity<TId> + Guid-based BaseEntity)
-│ │ ├── Error.cs
-│ │ └── Result.cs
-│ └── Entities/
-│ ├── TaskItem.cs
-│ ├── ProjectEntity.cs
-│ ├── Comment.cs
-│ └── TaskStatus.cs
+│   ├── Common/
+│   │   ├── BaseEntity.cs            (generic BaseEntity<TId> + Guid-based BaseEntity)
+│   │   ├── Error.cs
+│   │   └── Result.cs
+│   └── Entities/
+│       ├── TaskItem.cs
+│       ├── ProjectEntity.cs
+│       ├── Comment.cs
+│       └── TaskStatus.cs
 │
 ├── TaskManagement.Application/
-│ ├── Abstractions/
-│ │ ├── Persistence/
-│ │ │ ├── IRepository.cs
-│ │ │ └── IUnitOfWork.cs
-│ │ └── Authentication/
-│ │ ├── ITokenService.cs
-│ │ ├── IIdentityService.cs
-│ │ └── ICurrentUserService.cs
-│ ├── Common/
-│ │ ├── Behaviors/
-│ │ │ ├── LoggingBehavior.cs
-│ │ │ └── ValidationBehavior.cs
-│ │ └── Exceptions/
-│ │ └── ForbiddenAccessException.cs
-│ ├── Features/
-│ │ ├── Auth/
-│ │ │ ├── Commands/ (Register, Login, RefreshToken, Logout)
-│ │ │ └── Dtos/AuthResponse.cs
-│ │ ├── Projects/
-│ │ │ ├── Commands/ (CreateProject, UpdateProject, DeleteProject)
-│ │ │ ├── Queries/ (GetProjects, GetProjectById)
-│ │ │ └── Dtos/
-│ │ ├── Tasks/
-│ │ │ ├── Commands/ (CreateTask, UpdateTask, UpdateTaskStatus, DeleteTask)
-│ │ │ ├── Queries/ (GetTasks, GetTaskById)
-│ │ │ └── Dtos/
-│ │ └── Comments/
-│ │ ├── Commands/ (CreateComment, DeleteComment)
-│ │ ├── Queries/ (GetTaskComments)
-│ │ └── Dtos/
-│ └── DependencyInjection.cs
+│   ├── Abstractions/
+│   │   ├── Persistence/
+│   │   │   ├── IRepository.cs
+│   │   │   └── IUnitOfWork.cs
+│   │   └── Authentication/
+│   │       ├── ITokenService.cs
+│   │       ├── IIdentityService.cs
+│   │       └── ICurrentUserService.cs
+│   ├── Common/
+│   │   ├── Behaviors/
+│   │   │   ├── LoggingBehavior.cs
+│   │   │   └── ValidationBehavior.cs
+│   │   └── Exceptions/
+│   │       └── ForbiddenAccessException.cs
+│   ├── Features/
+│   │   ├── Auth/
+│   │   │   ├── Commands/ (Register, Login, RefreshToken, Logout)
+│   │   │   └── Dtos/AuthResponse.cs
+│   │   ├── Projects/
+│   │   │   ├── Commands/ (CreateProject, UpdateProject, DeleteProject)
+│   │   │   ├── Queries/  (GetProjects, GetProjectById)
+│   │   │   └── Dtos/
+│   │   ├── Tasks/
+│   │   │   ├── Commands/ (CreateTask, UpdateTask, UpdateTaskStatus, DeleteTask)
+│   │   │   ├── Queries/  (GetTasks, GetTaskById)
+│   │   │   └── Dtos/
+│   │   └── Comments/
+│   │       ├── Commands/ (CreateComment, DeleteComment)
+│   │       ├── Queries/  (GetTaskComments)
+│   │       └── Dtos/
+│   └── DependencyInjection.cs
 │
 ├── TaskManagement.Infrastructure/
-│ ├── Identity/
-│ │ ├── ApplicationUser.cs
-│ │ ├── ApplicationRole.cs
-│ │ ├── RefreshToken.cs
-│ │ ├── IdentityService.cs
-│ │ └── IdentitySeeder.cs
-│ ├── Authentication/
-│ │ ├── JwtSettings.cs
-│ │ ├── TokenService.cs
-│ │ └── CurrentUserService.cs
-│ ├── Persistence/
-│ │ ├── Configurations/
-│ │ ├── Repositories/
-│ │ └── UnitOfWork.cs
-│ ├── AppDbContext.cs
-│ └── DependencyInjection.cs
+│   ├── Identity/
+│   │   ├── ApplicationUser.cs
+│   │   ├── ApplicationRole.cs
+│   │   ├── RefreshToken.cs
+│   │   ├── IdentityService.cs
+│   │   └── IdentitySeeder.cs
+│   ├── Authentication/
+│   │   ├── JwtSettings.cs
+│   │   ├── TokenService.cs
+│   │   └── CurrentUserService.cs
+│   ├── Persistence/
+│   │   ├── Configurations/
+│   │   ├── Repositories/
+│   │   └── UnitOfWork.cs
+│   ├── AppDbContext.cs
+│   └── DependencyInjection.cs
 │
 └── TaskManagement.API/
-├── Controllers/
-│ ├── AuthController.cs
-│ ├── ProjectsController.cs
-│ ├── TasksController.cs
-│ └── CommentsController.cs
-├── Middleware/
-│ └── GlobalExceptionHandler.cs
-├── appsettings.json
-└── Program.cs
+    ├── Controllers/
+    │   ├── AuthController.cs
+    │   ├── ProjectsController.cs
+    │   ├── TasksController.cs
+    │   └── CommentsController.cs
+    ├── Middleware/
+    │   └── GlobalExceptionHandler.cs
+    ├── appsettings.json
+    └── Program.cs
+```
 
 Each feature is self-contained: its commands, queries, DTOs, and validators live together.
 
@@ -182,16 +185,20 @@ All endpoints except `/api/auth/*` require a valid access token.
 
 1. Set the connection string and the `Jwt` section in `TaskManagement.API/appsettings.json`. `Jwt:Key` must be at least 32 characters.
 2. Apply migrations:
-
-Update-Database
-
+   ```
+   Update-Database
+   ```
    (Package Manager Console, with `TaskManagement.Infrastructure` as the default project and `TaskManagement.API` as the startup project.)
 3. Run `TaskManagement.API` (F5). Swagger opens automatically.
 4. Call `POST /api/auth/register`, copy the `accessToken`, click **Authorize** in Swagger, and paste the token (without the `Bearer` prefix).
+
+To create an Admin, register a user and then assign the `Admin` role to it in the `AspNetUserRoles` table.
 
 ---
 
 ## Request Flow
 
+```
 HTTP request -> Controller -> MediatR -> LoggingBehavior -> ValidationBehavior -> Handler
--> Repository abstraction -> Infrastructure -> DbContext -> SQL Server
+   -> Repository abstraction -> Infrastructure -> DbContext -> SQL Server
+```
