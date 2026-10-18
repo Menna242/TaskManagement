@@ -45,6 +45,7 @@ namespace TaskManagement.Application.Features.Tasks.Commands.CreateTask
                 Description = request.Description,
                 ProjectId = request.ProjecgtId,
                 OwnerId = userId,
+                DueDate = request.DueDate
             };
 
             await _unitOfWork.Tasks.AddAsync(task, cancellationToken);
@@ -56,6 +57,7 @@ namespace TaskManagement.Application.Features.Tasks.Commands.CreateTask
                 Description = task.Description,
                 Status = task.Status.ToString(),
                 ProjectId = task.ProjectId,
+                DueDate = task.DueDate,
                 CreatedAt = task.CreatedAt
             };
         }

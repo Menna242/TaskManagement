@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using TaskManagement.Application.Abstractions.Authentication;
+using TaskManagement.Application.Abstractions.BackgroundJobs;
 using TaskManagement.Application.Abstractions.Persistence;
 using TaskManagement.Application.Common.Exceptions;
 using TaskManagement.Application.Features.Tasks.Dtos;
@@ -11,17 +12,22 @@ public class UpdateTaskStatusCommandHandler : IRequestHandler<UpdateTaskStatusCo
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUser;
+    private readonly IBackgroundJobService _backgroundJobs;
+
 
     public UpdateTaskStatusCommandHandler(
         IUnitOfWork unitOfWork,
-        ICurrentUserService currentUser)
+        ICurrentUserService currentUser,
+        IBackgroundJobService backgroundJobs)
     {
         _unitOfWork = unitOfWork;
         _currentUser = currentUser;
+        _backgroundJobs = backgroundJobs;
     }
 
     public async Task<TaskDto> Handle(UpdateTaskStatusCommand request, CancellationToken cancellationToken)
     {
+
         var task = await _unitOfWork.Tasks.GetByIdAsync(request.Id, cancellationToken);
 
         if (task is null)
@@ -37,6 +43,9 @@ public class UpdateTaskStatusCommandHandler : IRequestHandler<UpdateTaskStatusCo
         _unitOfWork.Tasks.Update(task);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
+        if (task.Status == TaskItemStatus.Completed)
+            _backgroundJobs.EnqueueTaskCompleted(task.Id);
+
         return new TaskDto
         {
             Id = task.Id,
@@ -44,6 +53,7 @@ public class UpdateTaskStatusCommandHandler : IRequestHandler<UpdateTaskStatusCo
             Description = task.Description,
             Status = task.Status.ToString(),
             ProjectId = task.ProjectId,
+            DueDate = task.DueDate,
             CreatedAt = task.CreatedAt
         };
     }

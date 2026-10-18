@@ -27,7 +27,7 @@ public class AddCommentCommandHandler : IRequestHandler<CreateCommentCommand, Co
         var task = await _unitOfWork.Tasks.GetByIdAsync(request.TaskId, cancellationToken);
 
         if (task is null)
-            throw new Exception("Task not found");
+            throw new KeyNotFoundException($"Task with id {request.TaskId} was not found.");
 
         if (task.OwnerId != _currentUser.UserId && !_currentUser.IsAdmin)
             throw new ForbiddenAccessException();

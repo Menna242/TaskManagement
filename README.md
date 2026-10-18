@@ -1,19 +1,22 @@
 # TaskManagement API
 
-A task and project management API built with **.NET 8**, demonstrating **Clean Architecture**, **Feature-Based organization**, **CQRS with MediatR**, **Pipeline Behaviors**, **JWT authentication**, and **resource-based authorization**.
+A task and project management API built with **.NET 8**, demonstrating **Clean Architecture**, **Feature-Based organization**, **CQRS with MediatR**, **Pipeline Behaviors**, **JWT authentication**, **resource-based authorization**, **automated testing**, and **background processing with Hangfire and Quartz.NET**.
 
-Sprint 4 established the architectural foundation (Clean Architecture, CQRS, MediatR, Pipeline Behaviors). Sprint 5 extends that same system with business rules, a task workflow, authentication, authorization, validation, and consistent error handling.
+- **Sprint 4** established the architectural foundation (Clean Architecture, CQRS, MediatR, Pipeline Behaviors).
+- **Sprint 5** extended it with business rules, a task workflow, authentication, authorization, validation, and consistent error handling.
+- **Sprint 6** improved reliability with unit and integration tests, and moved non-request work into background and scheduled jobs.
 
 ---
 
 ## Architecture Overview
 
-The solution is split into **four independent projects**, each with a single, well-defined responsibility:
+The solution is split into **four independent projects** plus a test project, each with a single, well-defined responsibility:
 
-- **Domain**: core entities, enums, `Result`/`Error` types. No external dependencies.
-- **Application**: Commands/Queries, DTOs, validators, pipeline behaviors, and abstractions (repositories, auth services).
-- **Infrastructure**: EF Core, ASP.NET Core Identity, JWT token generation, repository and unit of work implementations.
-- **API**: controllers, Swagger, JWT bearer setup, global exception handling.
+- **Domain**: core entities, enums, domain exceptions, `Result`/`Error` types. No external dependencies.
+- **Application**: Commands/Queries, DTOs, validators, pipeline behaviors, background job logic, and abstractions (repositories, auth services, background job service).
+- **Infrastructure**: EF Core, ASP.NET Core Identity, JWT token generation, Hangfire and Quartz.NET integration, repository and unit of work implementations.
+- **API**: controllers, Swagger, JWT bearer setup, global exception handling, Hangfire dashboard.
+- **Tests**: unit tests and integration tests.
 
 ```
 Client -> API -> MediatR -> Logging -> Validation -> Handler -> Repository abstraction -> Infrastructure -> Database
@@ -35,21 +38,26 @@ TaskManagement/
 │   │   ├── BaseEntity.cs            (generic BaseEntity<TId> + Guid-based BaseEntity)
 │   │   ├── Error.cs
 │   │   └── Result.cs
-│   └── Entities/
-│       ├── TaskItem.cs
-│       ├── ProjectEntity.cs
-│       ├── Comment.cs
-│       └── TaskStatus.cs
+│   ├── Entities/
+│   │   ├── TaskItem.cs
+│   │   ├── ProjectEntity.cs
+│   │   └── Comment.cs
+│   ├── Enums/
+│   │   └── TaskItemStatus.cs
+│   └── Exceptions/
+│       └── InvalidStatusTransitionException.cs
 │
 ├── TaskManagement.Application/
 │   ├── Abstractions/
 │   │   ├── Persistence/
 │   │   │   ├── IRepository.cs
 │   │   │   └── IUnitOfWork.cs
-│   │   └── Authentication/
-│   │       ├── ITokenService.cs
-│   │       ├── IIdentityService.cs
-│   │       └── ICurrentUserService.cs
+│   │   ├── Authentication/
+│   │   │   ├── ITokenService.cs
+│   │   │   ├── IIdentityService.cs
+│   │   │   └── ICurrentUserService.cs
+│   │   └── BackgroundJobs/
+│   │       └── IBackgroundJobService.cs
 │   ├── Common/
 │   │   ├── Behaviors/
 │   │   │   ├── LoggingBehavior.cs
@@ -65,8 +73,9 @@ TaskManagement/
 │   │   │   ├── Queries/  (GetProjects, GetProjectById)
 │   │   │   └── Dtos/
 │   │   ├── Tasks/
-│   │   │   ├── Commands/ (CreateTask, UpdateTask, UpdateTaskStatus, DeleteTask)
+│   │   │   ├── Commands/ (CreateTask, UpdateTask, UpdateTaskStatus, AssignTask, DeleteTask)
 │   │   │   ├── Queries/  (GetTasks, GetTaskById)
+│   │   │   ├── Jobs/     (TaskCompletedJob)
 │   │   │   └── Dtos/
 │   │   └── Comments/
 │   │       ├── Commands/ (CreateComment, DeleteComment)
@@ -85,6 +94,9 @@ TaskManagement/
 │   │   ├── JwtSettings.cs
 │   │   ├── TokenService.cs
 │   │   └── CurrentUserService.cs
+│   ├── BackgroundJobs/
+│   │   ├── BackgroundJobService.cs   (Hangfire enqueue)
+│   │   └── OverdueTasksJob.cs        (Quartz recurring job)
 │   ├── Persistence/
 │   │   ├── Configurations/
 │   │   ├── Repositories/
@@ -92,25 +104,37 @@ TaskManagement/
 │   ├── AppDbContext.cs
 │   └── DependencyInjection.cs
 │
-└── TaskManagement.API/
-    ├── Controllers/
-    │   ├── AuthController.cs
-    │   ├── ProjectsController.cs
-    │   ├── TasksController.cs
-    │   └── CommentsController.cs
-    ├── Middleware/
-    │   └── GlobalExceptionHandler.cs
-    ├── appsettings.json
-    └── Program.cs
+├── TaskManagement.API/
+│   ├── Controllers/
+│   │   ├── AuthController.cs
+│   │   ├── ProjectsController.cs
+│   │   ├── TasksController.cs
+│   │   └── CommentsController.cs
+│   ├── Middleware/
+│   │   ├── GlobalExceptionHandler.cs
+│   │   └── HangfireBasicAuthFilter.cs
+│   ├── appsettings.json
+│   └── Program.cs
+│
+└── TaskManagement.Tests/
+    ├── Domain/
+    │   └── TaskStatusTransitionTests.cs
+    ├── Application/
+    │   ├── CreateTaskTests.cs
+    │   ├── CreateCommentTests.cs
+    │   └── AssignTaskTests.cs
+    └── Integration/
+        ├── ApiFactory.cs
+        └── TaskWorkflowTests.cs
 ```
 
-Each feature is self-contained: its commands, queries, DTOs, and validators live together.
+Each feature is self-contained: its commands, queries, DTOs, validators, and jobs live together.
 
 ---
 
 ## Tech Stack
 
-.NET 8 · EF Core 8 (SQL Server) · ASP.NET Core Identity · JWT Bearer · MediatR · FluentValidation · Swagger
+.NET 8 · EF Core 8 (SQL Server) · ASP.NET Core Identity · JWT Bearer · MediatR · FluentValidation · Hangfire · Quartz.NET · xUnit · NSubstitute · WebApplicationFactory · Swagger
 
 ---
 
@@ -124,11 +148,13 @@ Each feature is self-contained: its commands, queries, DTOs, and validators live
 ### Business Rules
 - Full CRUD for Projects, Tasks, and Comments (Comments: add, list by task, delete)
 - Every Task belongs to an existing Project, and every Comment belongs to an existing Task
+- Tasks can be assigned to an existing user; assigning to a user that does not exist is rejected
+- Tasks can have an optional due date
 - Required fields: Project name, Task title, Comment content
 - Deleting a Project cascades to its Tasks, and deleting a Task cascades to its Comments
 
 ### Task Workflow
-Tasks follow a controlled lifecycle: `Todo`, `InProgress`, `Completed`, `Cancelled`.
+Tasks follow a controlled lifecycle: `Todo`, `InProgress`, `Completed`, `Cancelled`. The transition rules live inside the `TaskItem` entity.
 
 | From | Allowed transitions |
 |---|---|
@@ -137,7 +163,7 @@ Tasks follow a controlled lifecycle: `Todo`, `InProgress`, `Completed`, `Cancell
 | Completed | none |
 | Cancelled | none |
 
-Invalid transitions are rejected with an error response. Status changes use a dedicated use case (`UpdateTaskStatus`).
+Invalid transitions are rejected with a `409 Conflict`. Status changes use a dedicated use case (`UpdateTaskStatus`).
 
 ### Authentication
 - ASP.NET Core Identity with `ApplicationUser`
@@ -168,14 +194,100 @@ Invalid transitions are rejected with an error response. Status changes use a de
 
 ---
 
+## Testing (Sprint 6)
+
+Tests focus on observable behavior and use the Arrange / Act / Assert structure. Test names describe behavior, for example `Should_Complete_Task_When_CurrentStatus_IsInProgress`.
+
+### Unit tests
+Mocks (NSubstitute) are used only for external collaborators such as the unit of work and the identity service. The five business-rule areas covered:
+
+| Area | Test class |
+|---|---|
+| Valid Task status transition | `TaskStatusTransitionTests` |
+| Invalid Task status transition | `TaskStatusTransitionTests` |
+| Creating a Task with an invalid Project | `CreateTaskTests` |
+| Adding a Comment to an invalid Task | `CreateCommentTests` |
+| Assigning a Task to an invalid User | `AssignTaskTests` |
+
+Both success and failure paths are covered. Status transition tests need no mocks because the rules live in the `TaskItem` entity.
+
+### Integration tests
+Integration tests run the whole API in memory through `WebApplicationFactory` and call it with `HttpClient`.
+
+The critical workflow tested end to end:
+
+```
+Register -> Login -> Create Project -> Create Task -> Assign Task -> Complete Task
+```
+
+- Ids and the access token are passed from one step to the next, nothing is hard-coded.
+- Status codes and key response data are asserted at each step.
+- A dedicated SQL Server database (`TaskManagementDb_Tests`) is deleted and recreated for each test run, so tests are isolated and repeatable.
+- `IBackgroundJobService` is replaced with a test double, so the workflow does not depend on a running Hangfire worker.
+
+Run all tests from Visual Studio (**Test > Run All Tests**) or with:
+
+```
+dotnet test
+```
+
+The test database connection string is defined in `TaskManagement.Tests/Integration/ApiFactory.cs`. Adjust it if your SQL Server instance differs.
+
+---
+
+## Background Processing (Sprint 6)
+
+### Hangfire: event-driven jobs
+When a Task is completed, `UpdateTaskStatus` enqueues a background job instead of doing the work inside the HTTP request.
+
+```
+Task Completed -> Enqueue Job (stored in SQL Server) -> Hangfire Worker -> TaskCompletedJob -> Structured Log
+```
+
+- **Persistent storage:** jobs are stored in SQL Server, so they survive an application restart.
+- **Lightweight payload:** only the `taskId` is passed. The job loads the current state from the database when it runs.
+- **Scoped services:** the job receives its dependencies through the DI scope created for its execution.
+- **Retries:** 3 automatic attempts with delays of 10, 30, and 60 seconds. After that the job stays in the **Failed** state for inspection and can be requeued from the dashboard.
+- **Idempotency:** the job checks `CompletionNotifiedAt` before notifying, so running it twice does not send the notification twice.
+- **Dashboard:** available at `/hangfire`, protected with Basic Authentication. Credentials come from configuration:
+
+```json
+"Hangfire": {
+  "Username": "admin",
+  "Password": "change-me"
+}
+```
+
+The notification itself is simulated with structured logging.
+
+### Quartz.NET: scheduled jobs
+`OverdueTasksJob` runs on a recurring schedule, finds overdue Tasks (due date in the past and status not `Completed` or `Cancelled`), and logs the number of processed records and the details of each one.
+
+```
+Scheduled Trigger -> OverdueTasksJob -> Find Overdue Tasks -> Structured Log
+```
+
+- Configured through ASP.NET Core dependency injection (`AddQuartz` and `AddQuartzHostedService`).
+- The `CancellationToken` is passed to the database query and cancellation is handled explicitly.
+- Expected failures are caught and logged without stopping the schedule.
+- `[DisallowConcurrentExecution]` prevents overlapping runs.
+- The schedule interval is defined in `Infrastructure/DependencyInjection.cs`.
+
+### When to use which
+- **Hangfire:** work triggered by a business event, with persistence, retries, and a dashboard.
+- **Quartz.NET:** work that must run on a time schedule, regardless of user actions.
+
+---
+
 ## API Endpoints
 
 | Area | Endpoints |
 |---|---|
 | Auth | `POST /api/auth/register`, `/login`, `/refresh`, `/logout` |
 | Projects | `GET /api/projects`, `GET /api/projects/{id}`, `POST`, `PUT /{id}`, `DELETE /{id}` |
-| Tasks | `GET /api/tasks`, `GET /api/tasks/{id}`, `POST`, `PUT /{id}`, `PATCH /{id}/status`, `DELETE /{id}` |
+| Tasks | `GET /api/tasks`, `GET /api/tasks/{id}`, `POST`, `PUT /{id}`, `PATCH /{id}/status`, `PUT /{id}/assign`, `DELETE /{id}` |
 | Comments | `POST /api/tasks/{taskId}/comments`, `GET /api/tasks/{taskId}/comments`, `DELETE /api/comments/{id}` |
+| Dashboard | `GET /hangfire` (Basic Auth) |
 
 All endpoints except `/api/auth/*` require a valid access token.
 
@@ -183,14 +295,16 @@ All endpoints except `/api/auth/*` require a valid access token.
 
 ## Run
 
-1. Set the connection string and the `Jwt` section in `TaskManagement.API/appsettings.json`. `Jwt:Key` must be at least 32 characters.
+1. Set the connection string, the `Jwt` section, and the `Hangfire` section in `TaskManagement.API/appsettings.json`. `Jwt:Key` must be at least 32 characters.
 2. Apply migrations:
    ```
    Update-Database
    ```
-   (Package Manager Console, with `TaskManagement.Infrastructure` as the default project and `TaskManagement.API` as the startup project.)
+   (Package Manager Console, with `TaskManagement.Infrastructure` as the default project and `TaskManagement.API` as the startup project.) Hangfire creates its own tables on first start.
 3. Run `TaskManagement.API` (F5). Swagger opens automatically.
 4. Call `POST /api/auth/register`, copy the `accessToken`, click **Authorize** in Swagger, and paste the token (without the `Bearer` prefix).
+5. Complete a Task (`InProgress`, then `Completed`) and watch the job in the Hangfire dashboard and in the application logs.
+6. Create a Task with a `dueDate` in the past and watch the Quartz job report it in the logs.
 
 To create an Admin, register a user and then assign the `Admin` role to it in the `AspNetUserRoles` table.
 
@@ -201,4 +315,7 @@ To create an Admin, register a user and then assign the `Admin` role to it in th
 ```
 HTTP request -> Controller -> MediatR -> LoggingBehavior -> ValidationBehavior -> Handler
    -> Repository abstraction -> Infrastructure -> DbContext -> SQL Server
+
+Task completed -> Handler -> Hangfire enqueue -> Worker -> TaskCompletedJob
+Schedule -> Quartz -> OverdueTasksJob -> Repository -> Structured log
 ```

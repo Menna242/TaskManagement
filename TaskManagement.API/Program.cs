@@ -1,4 +1,5 @@
 using System.Text;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -119,7 +120,18 @@ app.UseHttpsRedirection();
 app.UseAuthentication();  
 app.UseAuthorization();
 
-
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[]
+    {
+        new HangfireBasicAuthFilter(
+            builder.Configuration["Hangfire:Username"]!,
+            builder.Configuration["Hangfire:Password"]!)
+    }
+});
 app.MapControllers();
 
 app.Run();
+
+
+public partial class Program { }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Mvc;
+using TaskManagement.Application.Features.Tasks.Commands.AssignTask;
 using TaskManagement.Application.Features.Tasks.Commands.CreateTask;
 using TaskManagement.Application.Features.Tasks.Commands.DeleteTask;
 using TaskManagement.Application.Features.Tasks.Commands.UpdateTask;
@@ -79,6 +80,18 @@ namespace TaskManagement.API.Controllers
         }
 
 
+        [HttpPut("{id:guid}/assign")]
+        public async Task<IActionResult> AssignTask(Guid id, AssignTaskRequest request, CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(new AssignTaskCommand(id, request.UserId), cancellationToken);
+            return Ok(result);
+        }
+
+
+
     }
+
+    public record AssignTaskRequest(Guid UserId);
+
     public record UpdateTaskStatusRequest(string Status);
 }

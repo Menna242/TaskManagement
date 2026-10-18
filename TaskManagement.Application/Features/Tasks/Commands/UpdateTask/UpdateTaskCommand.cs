@@ -12,6 +12,7 @@ namespace TaskManagement.Application.Features.Tasks.Commands.UpdateTask
         Guid Id,
         string Title,
         string? Description,
-        string Status
+        string Status,
+        DateTime? DueDate
         ) : IRequest<TaskDto>;
 }

@@ -8,4 +8,6 @@ public interface IIdentityService
     Task<AuthResponse> LoginAsync(string email, string password, CancellationToken cancellationToken = default);
     Task<AuthResponse> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
     Task LogoutAsync(string refreshToken, CancellationToken cancellationToken = default);
+
+    Task<bool> UserExistsAsync(Guid userId, CancellationToken cancellationToken = default);
 }

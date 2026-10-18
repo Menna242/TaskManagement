@@ -7,7 +7,7 @@ using TaskManagement.Domain.Enums;
 
 namespace TaskManagement.Domain.Exceptions
 {
-    public class InvalidStatusTransitionException : Exception
+    public class InvalidStatusTransitionException : InvalidOperationException
     {
         public InvalidStatusTransitionException(TaskItemStatus from, TaskItemStatus to)
             : base($"Cannot change task status from {from} to {to}.")

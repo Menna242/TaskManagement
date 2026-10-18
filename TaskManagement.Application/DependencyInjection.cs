@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using TaskManagement.Application.Common.Behaviors;
+using TaskManagement.Application.Features.Tasks.Jobs;
 
 namespace TaskManagement.Application
 {
@@ -21,6 +22,9 @@ namespace TaskManagement.Application
 
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+
+            services.AddScoped<ITaskCompletedJob, TaskCompletedJob>();
 
 
 

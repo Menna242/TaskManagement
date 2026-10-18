@@ -12,6 +12,7 @@ namespace TaskManagement.Application.Features.Tasks.Commands.CreateTask
     (
         string Title,
         string? Description,
-        Guid ProjecgtId
+        Guid ProjecgtId,
+        DateTime? DueDate
     ) : IRequest<TaskDto>;
 }

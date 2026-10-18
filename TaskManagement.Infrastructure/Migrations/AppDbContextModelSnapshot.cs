@@ -149,7 +149,7 @@ namespace TaskManagement.Infrastructure.Migrations
 
                     b.HasIndex("TaskItemId");
 
-                    b.ToTable("Comments", (string)null);
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("TaskManagement.Domain.Entities.ProjectEntity", b =>
@@ -178,7 +178,7 @@ namespace TaskManagement.Infrastructure.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Projects", (string)null);
+                    b.ToTable("Projects");
                 });
 
             modelBuilder.Entity("TaskManagement.Domain.Entities.TaskItem", b =>
@@ -187,11 +187,20 @@ namespace TaskManagement.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("AssignedToUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("CompletionNotifiedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
@@ -217,7 +226,7 @@ namespace TaskManagement.Infrastructure.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("Tasks", (string)null);
+                    b.ToTable("Tasks");
                 });
 
             modelBuilder.Entity("TaskManagement.Infrastructure.Identity.ApplicationRole", b =>
@@ -347,7 +356,7 @@ namespace TaskManagement.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens", (string)null);
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

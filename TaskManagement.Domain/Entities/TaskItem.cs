@@ -20,6 +20,11 @@ namespace TaskManagement.Domain.Entities
         public Guid ProjectId { get; set; }
         public ProjectEntity? Project { get; set; }
 
+        public Guid? AssignedToUserId { get; set; }  
+        public DateTime? DueDate { get; set; }
+
+        public DateTime? CompletionNotifiedAt { get; set; }
+
         public List<Comment> Comments { get; set; } = new();
 
 

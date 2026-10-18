@@ -131,4 +131,10 @@ public class IdentityService : IIdentityService
             await _context.SaveChangesAsync(cancellationToken);
         }
     }
+
+    public async Task<bool> UserExistsAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        return user is not null;
+    }
 }

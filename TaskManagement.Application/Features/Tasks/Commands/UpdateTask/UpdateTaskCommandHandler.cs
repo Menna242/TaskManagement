@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,6 +38,7 @@ namespace TaskManagement.Application.Features.Tasks.Commands.UpdateTask
             task.Title = request.Title;
             task.Description = request.Description;
             task.UpdatedAt = DateTime.UtcNow;
+            task.DueDate = request.DueDate;
             _unitOfWork.Tasks.Update(task);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -47,6 +49,7 @@ namespace TaskManagement.Application.Features.Tasks.Commands.UpdateTask
                 Description = task.Description,
                 Status = task.Status.ToString(),
                 ProjectId = task.ProjectId,
+                DueDate = task.DueDate,
                 CreatedAt = task.CreatedAt
             };
         }
