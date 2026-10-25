@@ -145,7 +145,7 @@ Each feature is self-contained: its commands, queries, DTOs, validators, and job
 - Pipeline Behaviors: request logging with execution time, and automatic FluentValidation before handlers run
 - DTOs only: no EF entities exposed through the API
 
-### Business Rules
+### Business Rules (Sprint 5)
 - Full CRUD for Projects, Tasks, and Comments (Comments: add, list by task, delete)
 - Every Task belongs to an existing Project, and every Comment belongs to an existing Task
 - Tasks can be assigned to an existing user; assigning to a user that does not exist is rejected
@@ -153,7 +153,7 @@ Each feature is self-contained: its commands, queries, DTOs, validators, and job
 - Required fields: Project name, Task title, Comment content
 - Deleting a Project cascades to its Tasks, and deleting a Task cascades to its Comments
 
-### Task Workflow
+### Task Workflow (Sprint 5)
 Tasks follow a controlled lifecycle: `Todo`, `InProgress`, `Completed`, `Cancelled`. The transition rules live inside the `TaskItem` entity.
 
 | From | Allowed transitions |
@@ -165,19 +165,19 @@ Tasks follow a controlled lifecycle: `Todo`, `InProgress`, `Completed`, `Cancell
 
 Invalid transitions are rejected with a `409 Conflict`. Status changes use a dedicated use case (`UpdateTaskStatus`).
 
-### Authentication
+### Authentication (Sprint 5)
 - ASP.NET Core Identity with `ApplicationUser`
 - Register, Login, Refresh Token (with rotation), and Logout
 - JWT access tokens with claims: `sub`, `email`, `role`
 - Refresh tokens are stored as SHA-256 hashes and revoked on logout
 
-### Authorization
+### Authorization (Sprint 5)
 - Roles: `Admin` and `User` (seeded at startup)
 - New users receive the `User` role
 - `[Authorize]` on all secured controllers
 - Resource-based ownership checks in handlers: users can only modify their own Projects, Tasks, and Comments. Admins can access any resource.
 
-### Validation and Error Handling
+### Validation and Error Handling (Sprint 5)
 - FluentValidation validators for CreateProject, UpdateProject, CreateTask, UpdateTask, and CreateComment, executed through the existing `ValidationBehavior`
 - `Result<T>` used for expected failures (for example, `GetTaskById`)
 - `ProblemDetails` for all API errors
